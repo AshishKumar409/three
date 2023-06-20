@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import * as dat from 'dat.gui'
+import nebulae from '../images/nebulae-1.jpg'
+import nasa from '../images/nasa.jpg'
+import stars from '../images/stars.jpg'
 
 
 const renderer = new THREE.WebGLRenderer()
@@ -53,11 +56,20 @@ plane.receiveShadow=true
 plane.rotation.x= 0.5*Math.PI
 // console.log(-0.5*Math.PI)
 
+//TEXTURE
+const textureLoader = new THREE.TextureLoader()
+// const cubeTextureLoader = new THREE.CubeTextureLoader()
+scene.background = textureLoader.load(stars)
+// scene.background = cubeTextureLoader.load([nebulae,nebulae,nebulae,nebulae,nebulae,nebulae])
+
+
 
 const sphereGeometry = new THREE.SphereGeometry(4)
-const sphereMaterial = new THREE.MeshStandardMaterial({color:'violet',wireframe:false})
+const sphereMaterial = new THREE.MeshStandardMaterial({color:'blue',wireframe:false,map:textureLoader.load(nebulae)})
 const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial)
 scene.add(sphere)
+
+sphere.material.map = textureLoader.load(stars)
 
 sphere.castShadow=true
 
@@ -69,10 +81,16 @@ let gui = new dat.GUI()
 let options={
     sphereColor:'#ffea00',
     wireframe:false,
-    speed:0.01
+    speed:0.01,
+    angle:0.2,
+    penumbra:0,
+    intensity:1,
+    background:0xFFEA,
+    spotLightHelper:true
 }
 
 gui.addColor(options,'sphereColor').onChange(function(e){
+    console.log(e.toString('hex'))
     sphere.material.color.set(e)
 })
 
@@ -80,7 +98,17 @@ gui.add(options,'wireframe').onChange((e)=>{
     sphere.material.wireframe=e
 })
 
+gui.addColor(options,'background').onChange((e)=>{
+    // let value = '0x'+e
+    console.log(e)
+    renderer.setClearColor(e)
+})
+
 gui.add(options,'speed',0,0.1)
+
+
+renderer.setClearColor(0xFFEA)
+
 
 
 
@@ -113,11 +141,47 @@ spotLight.position.set(-100,100,0)
 
 let spotLightHelper = new THREE.SpotLightHelper(spotLight)
 scene.add(spotLightHelper)
+// scene.remove(spotLightHelper)
 spotLight.castShadow=true
+spotLight.angle=0.2
+
+gui.add(options,'spotLightHelper').onChange((e)=>{
+    e?scene.add(spotLightHelper): scene.remove(spotLightHelper) 
+})
+
+
+
+gui.add(options,'angle',0,1)
+gui.add(options,'penumbra',0,1)
+gui.add(options,'intensity',0,1)
+
+
+scene.fog = new THREE.Fog(0xFFFFFF,0,200)
+// scene.fog = new THREE.FogExp2(0xFFFFFF,0.01)
+
+const mousePostion = new THREE.Vector2()
+
+window.addEventListener('mousemove',(e)=>{
+    mousePostion.x = (e.clientX/window.innerWidth)*2-1
+    mousePostion.y = (e.clientY/window.innerHeight)*2+1
+})
+
+const rayCastor = new THREE.Raycaster()
+
+
 function animate(time){
     // console.log(time/1000)
     // box.rotation.x=time/5000
     // box.rotation.y=time/1000
+
+    spotLight.angle=options.angle
+    spotLight.penumbra=options.penumbra
+    spotLight.intensity=options.intensity
+    spotLightHelper.update()
+
+    rayCastor.setFromCamera(mousePostion,camera)
+    const intersects = rayCastor.intersectObjects(scene.children)
+    console.log(intersects)
 
     step+=options.speed
     sphere.position.y = 10*Math.abs(Math.sin(step))
