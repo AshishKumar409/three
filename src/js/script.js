@@ -161,7 +161,7 @@ scene.fog = new THREE.Fog(0xFFFFFF,0,200)
 
 const mousePostion = new THREE.Vector2()
 
-window.addEventListener('mousemove',(e)=>{
+window.addEventListener('mouseover',(e)=>{
     mousePostion.x = (e.clientX/window.innerWidth)*2-1
     mousePostion.y = (e.clientY/window.innerHeight)*2+1
 })
