@@ -65,11 +65,12 @@ scene.background = textureLoader.load(stars)
 
 
 const sphereGeometry = new THREE.SphereGeometry(4)
-const sphereMaterial = new THREE.MeshStandardMaterial({color:'blue',wireframe:false,map:textureLoader.load(nebulae)})
+const sphereMaterial = new THREE.MeshStandardMaterial({color:'blue',wireframe:false})
 const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial)
+const sphereId = sphere.id
 scene.add(sphere)
 
-sphere.material.map = textureLoader.load(stars)
+// sphere.material.map = textureLoader.load(stars)
 
 sphere.castShadow=true
 
@@ -161,7 +162,7 @@ scene.fog = new THREE.Fog(0xFFFFFF,0,200)
 
 const mousePostion = new THREE.Vector2()
 
-window.addEventListener('mouseover',(e)=>{
+window.addEventListener('mousemove',(e)=>{
     mousePostion.x = (e.clientX/window.innerWidth)*2-1
     mousePostion.y = (e.clientY/window.innerHeight)*2+1
 })
@@ -182,6 +183,12 @@ function animate(time){
     rayCastor.setFromCamera(mousePostion,camera)
     const intersects = rayCastor.intersectObjects(scene.children)
     console.log(intersects)
+
+    for(let i=0;i<intersects.length;i++){
+        if(intersects[i].object.id===sphereId){
+            intersects[i].object.material.color.set(0xFF0000)
+        }
+    }
 
     step+=options.speed
     sphere.position.y = 10*Math.abs(Math.sin(step))
